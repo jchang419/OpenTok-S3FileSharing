@@ -3,7 +3,6 @@
 
 <head>
     <title>s3 test</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
     <script src="https://static.opentok.com/v2/js/opentok.js" charset="utf-8"></script>
     <!-- OT_AWS libraries -->
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
@@ -13,7 +12,7 @@
 
 <body>
     <script type="text/javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function(event) {
         var buttonUpload = document.getElementById('upload-button');
         var results = document.getElementById('results');
         var fileChooser = document.getElementById('file-chooser');
@@ -35,6 +34,7 @@
             }
         }
     });
+
     // AWS config
     var awsConfig = {
         cognitoIdentityPoolId: '',
