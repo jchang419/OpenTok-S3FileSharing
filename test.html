@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>s3 test</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script src="https://static.opentok.com/v2/js/opentok.js" charset="utf-8"></script>
+    <!-- OT_AWS libraries -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="js/awsS3.js"></script>
+    <script src="js/OTFileTransfer.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var buttonUpload = document.getElementById('upload-button');
+        var results = document.getElementById('results');
+        var fileChooser = document.getElementById('file-chooser');
+
+        buttonUpload.addEventListener('click', function() {
+            filetransfer.sendFile({
+                file: fileChooser.files[0]
+                    //can choose to send to connection
+                    //,to: connectionid
+            }, fileUploadComplete);
+        }, false);
+
+        // fileupload callback
+        var fileUploadComplete = function(error) {
+            if (error) {
+                console.log("sendFile error: " + error.message);
+            } else {
+                console.log("file was sent successfully");
+            }
+        }
+    });
+    // AWS config
+    var awsConfig = {
+        cognitoIdentityPoolId: '',
+        awsCognitoRegion: '',
+        awsBucketName: ''
+    };
+
+    // this section is taken from OpenTok Hello World app
+    var apiKey = '';
+    var sessionId = '';
+    var token = '';
+
+    var session = OT.initSession(apiKey, sessionId)
+        .on('streamCreated', function(event) {
+            session.subscribe(event.stream);
+        })
+        .connect(token, function(error) {
+            if (error) {
+                console.log("session connect error: " + error.message);
+            } else {
+                console.log("session connected: " + sessionId);
+                session.publish(publisher)
+            }
+        });
+
+    var publisher = OT.initPublisher();
+
+    // create new OTFileTransfer obj
+    var filetransfer = new OTFileTransfer(session, awsConfig);
+
+    // listener for the receivedFile event
+    filetransfer.on('receivedFile', fileReceivedCallback);
+
+    // file received callback
+    function fileReceivedCallback(event) {
+        var file = event.data;
+
+        // check who sent the file. Ignore if sent from self
+        var isMe = event.from.connectionId === session.connection.connectionId ? true : false;
+        if (!(isMe)) {
+
+            // do stuff with the file here
+            base64Data = btoa(String.fromCharCode.apply(null, file.Body));
+            uriContent = "data:" + file.ContentType + ";base64," + encodeURIComponent(base64Data);
+            newWindow = window.open(uriContent, 'new file');
+            console.log("file received from: " + event.from.id);
+        }
+    }
+    </script>
+    <input type="file" id="file-chooser" />
+    <br/>
+    <button id="upload-button">Send File</button>
+    <div id="results"></div>
+</body>
+
+</html>
